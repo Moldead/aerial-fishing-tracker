@@ -1,0 +1,6 @@
+The Gradle wrapper scripts and wrapper JAR are from RuneLite's official example-plugin
+repository and Gradle, under the Apache License 2.0. The scripts retain their notices.
+See https://www.apache.org/licenses/LICENSE-2.0 .
+
+Game names and trademarks belong to Jagex. This project is not endorsed by Jagex
+or RuneLite. Runtime RuneLite libraries remain under their upstream licenses.
