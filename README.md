@@ -2,9 +2,15 @@
 
 A RuneLite plugin for aerial fishing on Molch Island. Keeps lifetime catches and pearl streaks per RuneScape character, with separate session counters and cumulative golden tench probability.
 
-## Installation status
+## Installation
 
-Not yet published or approved in the Plugin Hub. The development launcher below is for local testing. After acceptance and publication, install by searching for **Aerial Fishing Tracker** in RuneLite's Plugin Hub.
+Aerial Fishing Tracker is available in RuneLite's Plugin Hub.
+
+1. Open RuneLite's **Configuration** panel (the wrench icon).
+2. Open **Plugin Hub** at the bottom of the plugin list.
+3. Search for **Aerial Fishing Tracker** by **Moldead** and click **Install**.
+
+Use your normal RuneLite client; no `.cmd` launcher or local build is needed. The development instructions below are only for building or testing the source code.
 
 ## Features
 
