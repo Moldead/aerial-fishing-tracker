@@ -27,6 +27,8 @@ public class PluginInjectionTest
             binder.bind(ClientToolbar.class).toInstance(mock(ClientToolbar.class));
             binder.bind(OverlayManager.class).toInstance(mock(OverlayManager.class));
             binder.bind(Gson.class).toInstance(new Gson());
+            binder.bind(java.util.concurrent.ScheduledExecutorService.class).toInstance(mock(java.util.concurrent.ScheduledExecutorService.class));
+            binder.bind(net.runelite.client.game.ItemManager.class).toInstance(mock(net.runelite.client.game.ItemManager.class));
         });
         AerialFishingPlugin plugin = new AerialFishingPlugin();
         Injector child = parent.createChildInjector(binder ->

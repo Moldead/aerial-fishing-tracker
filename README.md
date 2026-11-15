@@ -22,6 +22,16 @@ Use your normal RuneLite client; no `.cmd` launcher or local build is needed. Th
 - The **Historical additions** section in plugin settings accepts previous fish, optional pearls, and optional tenches. Enter amounts, enable **Apply historical additions**, and confirm the character and exact additions. Historical values are **additions**, not replacement totals. Add each past amount only once. The fish-shaped sidebar provides the same controls.
 - Right-click the overlay using RuneLite's overlay-menu modifier, or use the sidebar, to **Reset session only**. RuneLite's confirmation-protected **Reset** button at the bottom of this plugin's settings performs a full reset: it deletes the loaded character's tracker data and restores plugin/overlay defaults.
 
+## Golden tench celebrations
+
+Newly caught golden tenches trigger a gold confetti burst, a softly glowing banner, and a custom sound. Double tenches get two bursts 0.75 seconds apart, a gently pulsing banner glow, and glowing pale-gold particles. Effects finish in about 5 seconds (5.75 seconds for doubles), stay within the game viewport, and do not intercept clicks.
+
+Under **Golden tench**, confetti, banner, sound and animated effects each have a toggle, all enabled by default. Sound volume ranges from 0–100%, default 60%. Disabling animated effects removes confetti motion and the glow pulse. There is no player-facing preview trigger.
+
+The banner counts tracked fish since the previous caught tench across sessions and client restarts, including the current catch. A double tench ends one interval. Historical additions do not change this counter. Existing saves did not record the last tench's catch position, so the first interval after upgrading is labeled **since tench-interval tracking began**; after a tracked tench, later banners show **since last golden tench**. Lifetime totals are preserved during migration.
+
+Audio is bundled locally from Moldead's custom replacement sounds. No audio or images are downloaded at runtime. Login inventories, historical additions, old loot pickups and session resets do not trigger a celebration.
+
 ## What is counted
 
 **A catch roll means one successful cormorant return, not the number of fish items retained.** A full inventory still allows a successful roll. Rada's blessing and spirit flakes award no extra XP and duplicate the selected catch rather than making another independent golden-tench roll. The tracker supports at most two awarded tench items per successful return. Bonus-item behavior is subject to the live verification described below. The tench item counter includes a detected duplicate.

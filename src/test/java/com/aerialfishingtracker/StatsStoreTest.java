@@ -86,7 +86,7 @@ public class StatsStoreTest
     {
         assertThrows(IllegalArgumentException.class, () -> store.load(null));
         FishingStats stats = new FishingStats();
-        stats.schema = 3;
+        stats.schema = 4;
         data.put("alice:" + StatsStore.KEY, new Gson().toJson(stats));
         assertThrows(IllegalArgumentException.class, () -> store.load("alice"));
     }
@@ -105,9 +105,51 @@ public class StatsStoreTest
 
         FishingStats migrated = store.load("alice");
 
-        assertEquals(2, migrated.schema);
+        assertEquals(3, migrated.schema);
         assertEquals(175, migrated.longestDry);
         assertEquals(175, migrated.shortestGap);
+    }
+
+    @Test
+    public void tenchIntervalPersistsAndHistoryDoesNotRewriteIt()
+    {
+        FishingStats stats = store.load("alice");
+        stats.recordCatch(false, 2);
+        stats.recordCatch(false, 0);
+        stats.addHistory(16000, 100, 4);
+        store.save("alice", stats);
+        FishingStats loaded = store.load("alice");
+        assertTrue(loaded.seenTench);
+        assertEquals(1, loaded.sinceTench);
+        loaded.recordCatch(false, 1);
+        assertEquals(0, loaded.sinceTench);
+        assertEquals(16003, loaded.totalCatches());
+    }
+
+    @Test
+    public void schemaTwoKeepsTotalsButDoesNotInventTenchInterval()
+    {
+        FishingStats legacy = new FishingStats();
+        legacy.recordCatch(false, 1);
+        legacy.recordCatch(false, 0);
+        legacy.schema = 2;
+        data.put("alice:" + StatsStore.KEY, new Gson().toJson(legacy));
+        FishingStats migrated = store.load("alice");
+        assertEquals(2, migrated.catches);
+        assertEquals(1, migrated.tenches);
+        assertEquals(0, migrated.sinceTench);
+        assertFalse(migrated.seenTench);
+        migrated.recordCatch(false, 0);
+        store.save("alice", migrated);
+        assertEquals(1, store.load("alice").sinceTench);
+    }
+
+    @Test
+    public void malformedNewIntervalIsRejected()
+    {
+        String json = new Gson().toJson(new FishingStats());
+        data.put("alice:" + StatsStore.KEY, json.replace("\"sinceTench\":0", "\"sinceTench\":0.5"));
+        assertThrows(RuntimeException.class, () -> store.load("alice"));
     }
 
     @Test

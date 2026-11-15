@@ -41,6 +41,7 @@ public class AerialFishingPluginTest
     private Player player;
     private ItemContainer inventory;
     private ItemContainer equipment;
+    private TenchCelebration celebration;
 
     @Before
     public void setup() throws Exception
@@ -63,6 +64,8 @@ public class AerialFishingPluginTest
         inject("store", store);
         inject("overlayManager", mock(OverlayManager.class));
         inject("toolbar", mock(ClientToolbar.class));
+        celebration = mock(TenchCelebration.class);
+        inject("celebration", celebration);
         when(client.getLocalPlayer()).thenReturn(player);
         when(player.getName()).thenReturn("Alice");
         when(player.getWorldLocation()).thenReturn(new WorldPoint(1368, 3633, 0));
@@ -79,6 +82,53 @@ public class AerialFishingPluginTest
         plugin.startUp();
     }
 
+    @Test
+    public void tenchMessageAloneTriggersSingleExactlyOnce()
+    {
+        chat(ChatMessageType.GAMEMESSAGE, "The cormorant has brought you a very strange tench.");
+        tick();
+        tick();
+        verify(celebration, times(1)).show(1, 1, false);
+        verify(celebration, never()).show(eq(2), anyLong(), anyBoolean());
+    }
+
+    @Test
+    public void doubleOnGroundAndSplitInventoryGroundTriggerDouble()
+    {
+        assertGroundCelebration(0, 2);
+    }
+
+    @Test
+    public void splitDoubleTriggersDouble()
+    {
+        assertGroundCelebration(1, 1);
+    }
+
+    @Test
+    public void singleOnGroundTriggersSingle()
+    {
+        assertGroundCelebration(0, 1);
+    }
+
+    private void assertGroundCelebration(int inBag, int onGround)
+    {
+        Tile tile = mock(Tile.class);
+        TileItem item = mock(TileItem.class);
+        when(tile.getWorldLocation()).thenReturn(new WorldPoint(1368, 3633, 0));
+        when(item.getId()).thenReturn(ItemID.GOLDEN_TENCH);
+        when(item.getQuantity()).thenReturn(onGround);
+        when(item.getOwnership()).thenReturn(TileItem.OWNERSHIP_SELF);
+        caught();
+        chat(ChatMessageType.GAMEMESSAGE, "The cormorant has brought you a very strange tench.");
+        when(inventory.count(ItemID.GOLDEN_TENCH)).thenReturn(inBag);
+        plugin.onItemContainerChanged(new ItemContainerChanged(InventoryID.INV, inventory));
+        plugin.onItemSpawned(new ItemSpawned(tile, item));
+        tick();
+        tick();
+        assertEquals(inBag + onGround, plugin.stats().tenches);
+        verify(celebration, times(1)).show(inBag + onGround, 1, false);
+        verify(celebration, times(1)).show(anyInt(), anyLong(), anyBoolean());
+    }
     private void inject(String name, Object value) throws Exception
     {
         Field field = AerialFishingPlugin.class.getDeclaredField(name);
@@ -122,6 +172,9 @@ public class AerialFishingPluginTest
         tick();
         assertEquals(1, plugin.stats().catches);
         assertEquals(2, plugin.stats().tenches);
+        verify(celebration).show(2, 1, false);
+        tick();
+        verify(celebration, times(1)).show(anyInt(), anyLong(), anyBoolean());
     }
 
     @Test
@@ -300,6 +353,27 @@ public class AerialFishingPluginTest
         tick();
         assertEquals(1, plugin.stats().catches);
         assertEquals(1, plugin.session().catches);
+    }
+
+    @Test
+    public void historyAndUnrelatedInventoryNeverCelebrateButIntervalSurvivesSessionReset()
+    {
+        plugin.addHistory("alice", 16000, 200, 1);
+        when(inventory.count(ItemID.GOLDEN_TENCH)).thenReturn(1);
+        plugin.onItemContainerChanged(new ItemContainerChanged(InventoryID.INV, inventory));
+        tick();
+        verify(celebration, never()).show(anyInt(), anyLong(), anyBoolean());
+        caught();
+        chat(ChatMessageType.GAMEMESSAGE, "The cormorant has brought you a very strange tench.");
+        tick();
+        verify(celebration).show(1, 1, false);
+        caught();
+        tick();
+        plugin.resetSession("alice");
+        caught();
+        chat(ChatMessageType.GAMEMESSAGE, "The cormorant has brought you a very strange tench.");
+        tick();
+        verify(celebration).show(1, 2, true);
     }
 
     @Test
