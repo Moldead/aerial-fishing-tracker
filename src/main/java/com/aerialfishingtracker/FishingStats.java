@@ -3,7 +3,7 @@ package com.aerialfishingtracker;
 /** Persistent data only. There is deliberately no reset method. */
 final class FishingStats
 {
-    private static final int CURRENT_SCHEMA = 2;
+    private static final int CURRENT_SCHEMA = 3;
     int schema = CURRENT_SCHEMA;
     long catches;
     long pearls;
@@ -15,6 +15,8 @@ final class FishingStats
     long longestDry;
     long shortestGap;
     boolean seenPearl;
+    long sinceTench;
+    boolean seenTench;
 
     void recordCatch(boolean pearl, int tenchItems)
     {
@@ -26,12 +28,15 @@ final class FishingStats
         long nextTenches = Math.addExact(tenches, tenchItems);
         long nextPearls = Math.addExact(pearls, pearl ? 1 : 0);
         long interval = Math.addExact(sincePearl, 1);
+        long tenchInterval = Math.addExact(sinceTench, 1);
         Math.addExact(nextCatches, historicalCatches);
         Math.addExact(nextTenches, historicalTenches);
         Math.addExact(nextPearls, historicalPearls);
         catches = nextCatches;
         tenches = nextTenches;
         pearls = nextPearls;
+        sinceTench = tenchItems > 0 ? 0 : tenchInterval;
+        if (tenchItems > 0) { seenTench = true; }
         if (pearl)
         {
             longestDry = Math.max(longestDry, interval);
@@ -88,6 +93,13 @@ final class FishingStats
                 longestDry = Math.addExact(longestDry, 1);
             }
             longestDry = Math.max(longestDry, shortestGap);
+            schema = 2;
+        }
+        if (schema == 2)
+        {
+            // Older versions did not record the last tench's position. Do not invent it.
+            sinceTench = 0;
+            seenTench = false;
             schema = CURRENT_SCHEMA;
         }
     }
@@ -97,7 +109,8 @@ final class FishingStats
         if (schema != CURRENT_SCHEMA || catches < 0 || pearls < 0 || tenches < 0 || historicalCatches < 0
             || historicalPearls < 0 || historicalTenches < 0 || sincePearl < 0 || longestDry < sincePearl
             || shortestGap < 0 || pearls > catches || sincePearl > catches || longestDry > catches
-            || shortestGap > catches || seenPearl != (pearls > 0))
+            || shortestGap > catches || seenPearl != (pearls > 0)
+            || sinceTench < 0 || sinceTench > catches || (seenTench && tenches == 0))
         {
             throw new IllegalArgumentException("Invalid or unsupported lifetime data; refusing to overwrite it.");
         }

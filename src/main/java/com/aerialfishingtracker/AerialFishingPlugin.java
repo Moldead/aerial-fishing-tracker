@@ -54,6 +54,7 @@ public class AerialFishingPlugin extends Plugin
     @Inject private StatsStore store;
     @Inject private OverlayManager overlayManager;
     @Inject private AerialFishingOverlay overlay;
+    @Inject private TenchCelebration celebration;
     @Inject private ClientToolbar toolbar;
 
     // Retain sessions across logout, profile switches and plugin toggles within this client process.
@@ -88,6 +89,7 @@ public class AerialFishingPlugin extends Plugin
         navigation = NavigationButton.builder().tooltip("Aerial Fishing Tracker").icon(icon()).priority(7).panel(panel).build();
         toolbar.addNavigation(navigation);
         overlayManager.add(overlay);
+        overlayManager.add(celebration);
         clientThread.invoke(() ->
         {
             if (running && generation == lifecycle)
@@ -105,6 +107,8 @@ public class AerialFishingPlugin extends Plugin
         running = false;
         long generation = ++lifecycle;
         overlayManager.remove(overlay);
+        overlayManager.remove(celebration);
+        celebration.clear();
         toolbar.removeNavigation(navigation);
         clientThread.invoke(() ->
         {
@@ -140,6 +144,7 @@ public class AerialFishingPlugin extends Plugin
             return;
         }
         completeCatch();
+        celebration.clear();
         ready = false;
         profile = next;
         error = null;
@@ -163,6 +168,7 @@ public class AerialFishingPlugin extends Plugin
         {
             // Flush a completed tick before a hop/logout; never interpret login inventory as loot.
             completeCatch();
+            celebration.clear();
             pending.clear();
             ready = false;
             fishingXp = -1;
@@ -322,9 +328,23 @@ public class AerialFishingPlugin extends Plugin
         }
         try
         {
+            long tenchInterval = Math.addExact(stats.sinceTench, 1);
+            boolean knownTench = stats.seenTench;
             stats.recordCatch(result.pearl, result.tenches);
             session.recordCatch(System.nanoTime(), result.pearl, sessionTimeoutNanos());
             store.save(profile, stats);
+            if (result.tenches > 0 && running && client.getGameState() == GameState.LOGGED_IN
+                && profile.equals(configManager.getRSProfileKey()))
+            {
+                try
+                {
+                    celebration.show(result.tenches, tenchInterval, knownTench);
+                }
+                catch (RuntimeException ex)
+                {
+                    LOG.warn("Unable to display tench celebration; tracking continues", ex);
+                }
+            }
         }
         catch (RuntimeException ex)
         {
@@ -350,6 +370,7 @@ public class AerialFishingPlugin extends Plugin
             String target = profile != null ? profile : configManager.getRSProfileKey();
             if (target == null) { return; }
             pending.clear();
+            celebration.clear();
             store.reset(target);
             if (target.equals(profile))
             {
@@ -429,6 +450,13 @@ public class AerialFishingPlugin extends Plugin
     @Subscribe
     public void onConfigChanged(ConfigChanged event)
     {
+        if (AerialFishingConfig.GROUP.equals(event.getGroup()))
+        {
+            if (event.getKey().startsWith("celebration"))
+            {
+                celebration.clear();
+            }
+        }
         if (!AerialFishingConfig.GROUP.equals(event.getGroup()) || !"applyHistorical".equals(event.getKey())
             || !Boolean.parseBoolean(event.getNewValue()) || panel == null)
         {

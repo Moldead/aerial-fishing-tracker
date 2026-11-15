@@ -89,6 +89,18 @@ final class StatsStore
             }
         }
         FishingStats result = gson.fromJson(object, FishingStats.class);
+        if (result.schema == 3)
+        {
+            if (!object.has("sinceTench") || !object.get("sinceTench").isJsonPrimitive()
+                || !object.getAsJsonPrimitive("sinceTench").isNumber()
+                || !object.get("sinceTench").getAsString().matches("[0-9]+")
+                || new BigInteger(object.get("sinceTench").getAsString()).compareTo(MAX_LONG) > 0
+                || !object.has("seenTench") || !object.get("seenTench").isJsonPrimitive()
+                || !object.getAsJsonPrimitive("seenTench").isBoolean())
+            {
+                throw new IllegalArgumentException("Invalid tench interval data; refusing to replace it.");
+            }
+        }
         result.migrate();
         result.validate();
         return result;

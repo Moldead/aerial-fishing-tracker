@@ -39,6 +39,18 @@ These tests simulate RuneLite events. They do **not** establish the game's actua
 
 ## Current verification status
 
+### Celebration update (2026-11-14)
+
+The independent full suite passed 76 tests with zero failures/errors. Coverage includes schema 2-to-3 migration, preserved lifetime totals, persistent tench intervals, history exclusion, reconciled single/double catch notifications, resource audio decoding, particle paths, rendering at narrow/wide sizes, cancellation during device loading, and effect failures not pausing tracking. Headless frames are in `build/celebration-review/`; this does not verify live audio or catches.
+
+Moldead confirmed the local single/double celebration previews, sound timing, controls and revised popup text on 2026-11-15. The temporary celebration test plugin has been removed from source and the development launcher. Public users have no preview trigger.
+
+Actual newly caught single/double tench timing remains unobserved in game. Automated event tests cover single-message fallback, inventory doubles, ground singles/doubles, split inventory/ground doubles and exactly-once dispatch. Preview testing verifies presentation, not server packet ordering.
+
+Schema 3 saves cannot be read by the older schema 2 plugin. Do not alternate this development version with the older Hub build on the same profile after recording catches; the older build will pause rather than overwrite newer data. Preserve a RuneLite profile backup before upgrade testing if rollback is needed. Automated tests do not modify the normal profile.
+
+### Earlier release
+
 The owner reported successful login, relaunch, and normal operation after removal of the configurable overlay visibility option. The precise cause of that option's freeze has not been established. These reports do not establish every edge case above. On 2026-09-19, Moldead confirmed the five-second hourly display works and reported the live checklist passed for accessible cases. Extreme cases, including 200 million Fishing XP, remain unverified in game. This is owner-reported validation, not independently observed gameplay.
 
 ## Known boundaries

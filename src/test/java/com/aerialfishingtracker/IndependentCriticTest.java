@@ -36,6 +36,7 @@ public class IndependentCriticTest
         field(plugin, "store", store);
         field(plugin, "toolbar", mock(ClientToolbar.class));
         field(plugin, "overlayManager", mock(OverlayManager.class));
+        field(plugin, "celebration", mock(TenchCelebration.class));
         plugin.startUp();
         CatchAccumulator pending = (CatchAccumulator) field(plugin, "pending");
         pending.catchSignal();

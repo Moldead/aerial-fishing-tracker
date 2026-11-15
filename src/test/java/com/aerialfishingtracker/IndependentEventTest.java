@@ -60,6 +60,7 @@ public class IndependentEventTest
         inject("store", store);
         inject("toolbar", mock(ClientToolbar.class));
         inject("overlayManager", mock(OverlayManager.class));
+        inject("celebration", mock(TenchCelebration.class));
         plugin.startUp();
         drainCallbacks();
     }

@@ -29,6 +29,22 @@ public interface AerialFishingConfig extends Config
     @ConfigSection(name = "Historical additions", description = "Add pre-tracker totals to the logged-in character", position = 5)
     String HISTORY = "history";
 
+    @ConfigItem(keyName = "celebrationConfetti", name = "Confetti", description = "Gold confetti; doubles have two bursts 0.75 seconds apart", section = TENCH, position = 3)
+    default boolean celebrationConfetti() { return true; }
+
+    @ConfigItem(keyName = "celebrationBanner", name = "Celebration banner", description = "Shows the tracked interval across sessions; unknown prior tenches are not inferred", section = TENCH, position = 4)
+    default boolean celebrationBanner() { return true; }
+
+    @ConfigItem(keyName = "celebrationSound", name = "Celebration sound", description = "Play the bundled single or double tench sound", section = TENCH, position = 5)
+    default boolean celebrationSound() { return true; }
+
+    @Range(min = 0, max = 100)
+    @ConfigItem(keyName = "celebrationVolume", name = "Sound volume", description = "Celebration volume; zero mutes", section = TENCH, position = 6)
+    default int celebrationVolume() { return 60; }
+
+    @ConfigItem(keyName = "celebrationMotion", name = "Animated effects", description = "Disable to show a steady banner without moving confetti or pulsing glow", section = TENCH, position = 7)
+    default boolean celebrationMotion() { return true; }
+
     @ConfigItem(keyName = "lifetimeCatches", name = "Lifetime fish", description = "Tracked successful returns plus historical fish; cleared only by explicit full reset", section = CATCHES, position = 0)
     default boolean lifetimeCatches() { return true; }
 
