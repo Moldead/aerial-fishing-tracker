@@ -4,15 +4,11 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameTick;
 import net.runelite.client.config.ConfigItem;
 import org.junit.Test;
-import org.mockito.MockedStatic;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -40,46 +36,38 @@ public class CelebrationIndependentReviewTest
     }
 
     @Test
-    public void cancellationDuringDeviceOpenCannotStartAudio() throws Exception
+    public void cancellationWhilePlayerLoadsSuppressesStaleVisualCallback() throws Exception
     {
         ScheduledExecutorService executor = mock(ScheduledExecutorService.class);
         List<Runnable> queued = new ArrayList<>();
         doAnswer(invocation -> { queued.add(invocation.getArgument(0)); return null; })
             .when(executor).execute(any(Runnable.class));
-        TenchAudio audio = new TenchAudio(executor);
+        net.runelite.client.audio.AudioPlayer player = mock(net.runelite.client.audio.AudioPlayer.class);
+        TenchAudio audio = new TenchAudio(executor, player);
         Runnable started = mock(Runnable.class);
-        Clip clip = mock(Clip.class);
-        doAnswer(invocation -> { audio.stop(); return null; }).when(clip).open(any(AudioInputStream.class));
-        try (MockedStatic<AudioSystem> system = mockStatic(AudioSystem.class, CALLS_REAL_METHODS))
-        {
-            system.when(AudioSystem::getClip).thenReturn(clip);
-            audio.play(true, 100, started);
-            queued.get(0).run();
-        }
-        verify(clip, never()).start();
-        verify(clip, atLeastOnce()).close();
+        doAnswer(invocation -> { audio.stop(); return null; })
+            .when(player).play(any(Class.class), anyString(), anyFloat());
+        audio.play(true, 100, started);
+        queued.get(0).run();
+        verify(player).play(TenchAudio.class, "/audio/double-tench.wav", 0f);
         verifyNoInteractions(started);
     }
 
     @Test
-    public void cancelledQueuedSoundDoesNotOpenDevice() throws Exception
+    public void cancelledQueuedSoundDoesNotCallRuneLitePlayer()
     {
         ScheduledExecutorService executor = mock(ScheduledExecutorService.class);
         List<Runnable> queued = new ArrayList<>();
         doAnswer(invocation -> { queued.add(invocation.getArgument(0)); return null; })
             .when(executor).execute(any(Runnable.class));
-        TenchAudio audio = new TenchAudio(executor);
+        net.runelite.client.audio.AudioPlayer player = mock(net.runelite.client.audio.AudioPlayer.class);
+        TenchAudio audio = new TenchAudio(executor, player);
         Runnable started = mock(Runnable.class);
-        try (MockedStatic<AudioSystem> system = mockStatic(AudioSystem.class))
-        {
-            audio.play(false, 60, started);
-            audio.stop();
-            queued.get(0).run();
-            system.verifyNoInteractions();
-        }
-        verifyNoInteractions(started);
+        audio.play(false, 60, started);
+        audio.stop();
+        queued.get(0).run();
+        verifyNoInteractions(player, started);
     }
-
     @Test
     public void newSettingsDefaultOnUnderGoldenTenchWithoutPreview() throws Exception
     {

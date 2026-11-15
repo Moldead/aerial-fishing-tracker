@@ -88,7 +88,7 @@ public class TenchCelebrationTest
     {
         ScheduledExecutorService executor = mock(ScheduledExecutorService.class);
         org.mockito.ArgumentCaptor<Runnable> task = org.mockito.ArgumentCaptor.forClass(Runnable.class);
-        TenchAudio audio = new TenchAudio(executor);
+        TenchAudio audio = new TenchAudio(executor, mock(net.runelite.client.audio.AudioPlayer.class));
         Runnable started = mock(Runnable.class);
         audio.play(true, 50, started);
         verify(executor).execute(task.capture());

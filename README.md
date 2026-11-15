@@ -127,3 +127,5 @@ The production plugin makes no network requests, automates no gameplay, and adds
 - [RuneLite FishingPlugin](https://github.com/runelite/runelite/blob/master/runelite-client/src/main/java/net/runelite/client/plugins/fishing/FishingPlugin.java) — successful cormorant return message.
 
 This is an independent implementation, not endorsed by RuneLite or Jagex. See [release preparation](docs/RELEASE.md) for publication status and submission steps.
+
+Audio playback uses RuneLite's AudioPlayer. Disabling effects clears the visuals and cancels queued audio; a short sound already handed to RuneLite may finish playing. Volume adjustment depends on the audio device supporting RuneLite's gain control.
